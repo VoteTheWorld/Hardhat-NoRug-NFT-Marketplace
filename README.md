@@ -24,10 +24,4 @@ marketplace contract function
 7. `withdrawBalance`: withdraw payments for my brought nfts
 8. `refund`: refund
 
-```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat run scripts/deploy.js
-```
+ds
