@@ -15,11 +15,4 @@ refund 之后该 nft 会发送到版权收取费用的地址，该地址不可�
 1. `1day-10day`: 筹款人可以在 10day 内 withdraw 资金池的 10%，投资人在 1day 后可以 withdraw 资金池的 10%（gas 费用除外，二次交易有版权费）
 2. `10day-365day`: 实施资金池递减机制，筹款人可以 withdraw 90% x-10/（365-10），投资人可以 refund 90% 365-x /（365-10）/（mintedAmount - refundAmount）
 
-marketplace contract function
-
-3. `listItem`: list nft
-4. `buyItem`: buy nft
-5. `cancelItem`: cancel list
-6. `updateListing`: update the price
-7. `withdrawBalance`: withdraw payments for my brought nfts
-8. `refund`: refund
+marketplace contract function 3. `listItem`: list nft 4. `buyItem`: buy nft 5. `cancelItem`: cancel list 6. `updateListing`: update the price 7. `withdrawBalance`: withdraw payments for my brought nfts 8. `refund`: refund

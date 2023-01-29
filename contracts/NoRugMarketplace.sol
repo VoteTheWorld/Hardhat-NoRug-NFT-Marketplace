@@ -19,6 +19,7 @@ error NoRugMarketplace__PublicSaleNotStarted();
 error NoRugMarketplace__RefundFailed();
 error NoRugMarketplace__OverRefundTime();
 error NoRugMarketplace__CannotWithdraw();
+error NoRugMarketplace__ContractOwnerCanNotRefund();
 
 contract NoRugMarketplace {
     struct Listing {
@@ -92,7 +93,16 @@ contract NoRugMarketplace {
         }
         _;
     }
-    modifier isContractOwner(address nftAddress, address sender) {
+
+    modifier isContractOwner(address nftAddress) {
+        INoRugERC721 noRugNft = INoRugERC721(nftAddress);
+        address owner = noRugNft.getOwner();
+        if (owner == msg.sender) {
+            revert NoRugMarketplace__ContractOwnerCanNotRefund();
+        }
+        _;
+    }
+    modifier notContractOwner(address nftAddress) {
         INoRugERC721 noRugNft = INoRugERC721(nftAddress);
         address owner = noRugNft.getOwner();
         if (owner != msg.sender) {
@@ -100,6 +110,7 @@ contract NoRugMarketplace {
         }
         _;
     }
+
     modifier isListed(address nftAddress, uint256 tokenId) {
         Listing memory list = s_listing[nftAddress][tokenId];
         if (list.Price <= 0) {
@@ -139,7 +150,7 @@ contract NoRugMarketplace {
         address nftAddress,
         uint256 price,
         uint256 amount
-    ) external isContractOwner(nftAddress, msg.sender) {
+    ) external isContractOwner(nftAddress) {
         if (price <= 0) {
             revert NoRugMarketplace__PriceMustAboveZero();
         }
@@ -200,11 +211,7 @@ contract NoRugMarketplace {
 
     function publicSaleCancel(
         address nftAddress
-    )
-        external
-        isContractOwner(nftAddress, msg.sender)
-        isPublicListed(nftAddress)
-    {
+    ) external isContractOwner(nftAddress) isPublicListed(nftAddress) {
         delete (s_publicListing[nftAddress]);
         emit PublicCanceled(msg.sender, nftAddress);
     }
@@ -285,7 +292,12 @@ contract NoRugMarketplace {
         address nftAddress,
         uint256 publicSalesCount,
         uint256 tokenId
-    ) external payable isOwner(nftAddress, tokenId, msg.sender) {
+    )
+        external
+        payable
+        isOwner(nftAddress, tokenId, msg.sender)
+        notContractOwner(nftAddress)
+    {
         INoRugERC721 nft = INoRugERC721(nftAddress);
         if (nft.getApproved(tokenId) != address(this)) {
             revert NoRugMarketplace__NotApproved();
