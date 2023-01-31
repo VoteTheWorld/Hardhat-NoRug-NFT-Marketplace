@@ -23,3 +23,8 @@ marketplace contract function
 6. `updateListing`: update the price
 7. `withdrawBalance`: withdraw payments for my brought nfts
 8. `refund`: refund
+
+等待修改：
+
+1. code 加上备注
+2. 退款机制加上 uniswap 的转换（不太可行，contract 只能存储 eth）
