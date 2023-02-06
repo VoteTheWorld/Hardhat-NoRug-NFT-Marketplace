@@ -302,11 +302,8 @@ contract NoRugMarketplace {
         if (nft.getApproved(tokenId) != address(this)) {
             revert NoRugMarketplace__NotApproved();
         }
-        IERC721(nftAddress).safeTransferFrom(
-            msg.sender,
-            s_publicListing[nftAddress].Seller,
-            tokenId
-        );
+        address seller = s_publicListing[nftAddress].Seller;
+        IERC721(nftAddress).safeTransferFrom(msg.sender, seller, tokenId);
         uint256 refund = _getRefund(nftAddress, publicSalesCount);
         (bool success, ) = payable(msg.sender).call{value: refund}("");
         if (!success) {
