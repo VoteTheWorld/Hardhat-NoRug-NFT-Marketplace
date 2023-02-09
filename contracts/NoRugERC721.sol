@@ -1,5 +1,11 @@
 //SPDX-License-Identifier: MIT
 
+/** There are two differences between NoRUGERC721 and ERC721 standard as following:
+ * First, the mintNft function is only callable by the specifc market address
+ * which is a parameter for the contract constrcutor;
+ * Second, the contract has a stoarge variable which store the owner addres.
+ * Third, can only be mint thorugh NoRug Markerplace Address */
+
 pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
@@ -11,7 +17,7 @@ contract NoRugERC721 is ERC721 {
     string public constant TOKEN_URI =
         "ipfs://bafybeig37ioir76s7mg5oobetncojcm3c3hxasyd4rvid4jqhy4gkaheg4/?filename=0-PUG.json";
     address public s_owner;
-    address public s_MarketAddress;
+    address public immutable i_MarketAddress;
 
     constructor(
         string memory tokenName,
@@ -20,11 +26,11 @@ contract NoRugERC721 is ERC721 {
     ) ERC721(tokenName, tokenSymbol) {
         s_tokenCounter = 0;
         s_owner = msg.sender;
-        s_MarketAddress = MarketAddress;
+        i_MarketAddress = MarketAddress;
     }
 
     function mintNft(address mintObject) public {
-        if (msg.sender != s_MarketAddress) {
+        if (msg.sender != i_MarketAddress) {
             revert NoRugERC721__NotProperMarket();
         }
         _safeMint(mintObject, s_tokenCounter);

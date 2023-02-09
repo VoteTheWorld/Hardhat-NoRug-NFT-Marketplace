@@ -2,7 +2,7 @@
 pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "../contracts/INoRugERC721.sol";
+import "../contracts/interfaces/INoRugERC721.sol";
 
 error NoRugMarketplace__PriceMustAboveZero();
 error NoRugMarketplace__NotOwner();
@@ -54,7 +54,8 @@ contract NoRugMarketplace {
     event PublicItemListed(
         address indexed seller,
         address indexed nftAddress,
-        uint256 indexed price
+        uint256 indexed publicSaleCounter,
+        uint256 price
     );
     event ItemBrought(
         address indexed buyer,
@@ -161,11 +162,13 @@ contract NoRugMarketplace {
             0,
             0
         );
-        emit PublicItemListed(msg.sender, nftAddress, price);
 
         //store the time that was created
+        uint256 publicSaleCount = s_publicSaleCount;
         s_publicSale[nftAddress][s_publicSaleCount] = block.timestamp;
         s_publicSaleCount++;
+
+        emit PublicItemListed(msg.sender, nftAddress, publicSaleCount, price);
     }
 
     function buyItem(address nftAddress, uint256 tokenId) external payable {
@@ -193,7 +196,9 @@ contract NoRugMarketplace {
         }
         s_balancePublic[ListItem.Seller] += msg.value;
         ListItem.BroughtAmount += 1;
-        INoRugERC721(nftAddress).mintNft(msg.sender);
+
+        INoRugERC721(nftAddress).mintNft(msg.sender); // what if mint fails?
+
         emit PublicBrought(msg.sender, nftAddress, ListItem.Price);
     }
 
@@ -284,7 +289,7 @@ contract NoRugMarketplace {
                     (s_timePeriodTwo - s_timePeriodOne)) * (Item.Price * 9)) /
                     10) * (Item.BroughtAmount - Item.RefundAmount - 1);
         } else {
-            revert NoRugMarketplace__OverRefundTime();
+            return s_balancePublic[msg.sender];
         }
     }
 
@@ -340,7 +345,7 @@ contract NoRugMarketplace {
         }
     }
 
-    function getpublivSaleCount() external view returns (uint256) {
+    function getpublicSaleCount() external view returns (uint256) {
         return s_publicSaleCount;
     }
 

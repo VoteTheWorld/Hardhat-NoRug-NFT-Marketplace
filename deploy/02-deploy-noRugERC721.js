@@ -1,4 +1,4 @@
-const { network } = require("hardhat")
+const { network, ethers } = require("hardhat")
 const {
     developmentChains,
     VERIFICATION_BLOCK_CONFIRMATIONS,
@@ -8,12 +8,12 @@ const { verify } = require("../utils/verify")
 module.exports = async ({ deployments, getNamedAccounts }) => {
     const { deploy, log } = deployments
     const { deployer } = await getNamedAccounts()
-    NoRugMarketplace = await deployments.get("NoRugMarketplace")
+    NoRugMarketplace = await ethers.getContract("NoRugMarketplace")
     NoRugMarketplaceAddress = NoRugMarketplace.address
     const waitBlockConfirmation = developmentChains.includes(network.name)
         ? 1
         : VERIFICATION_BLOCK_CONFIRMATIONS
-    args = ["dad", "dafvafa", NoRugMarketplaceAddress]
+    args = ["norug", "NR", NoRugMarketplaceAddress]
     const NoRugERC721 = await deploy("NoRugERC721", {
         from: deployer,
         args: args,
