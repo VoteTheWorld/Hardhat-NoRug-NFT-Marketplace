@@ -151,7 +151,7 @@ contract NoRugMarketplace {
         address nftAddress,
         uint256 price,
         uint256 amount
-    ) external isContractOwner(nftAddress) {
+    ) external notContractOwner(nftAddress) {
         if (price <= 0) {
             revert NoRugMarketplace__PriceMustAboveZero();
         }
@@ -165,7 +165,7 @@ contract NoRugMarketplace {
 
         //store the time that was created
         uint256 publicSaleCount = s_publicSaleCount;
-        s_publicSale[nftAddress][s_publicSaleCount] = block.timestamp;
+        s_publicSale[nftAddress][publicSaleCount] = block.timestamp;
         s_publicSaleCount++;
 
         emit PublicItemListed(msg.sender, nftAddress, publicSaleCount, price);

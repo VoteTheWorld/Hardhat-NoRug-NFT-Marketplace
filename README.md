@@ -4,7 +4,7 @@
 
 1. code 加上备注
 2. 退款机制加上 uniswap 的转换（不太可行，contract 只能存储 eth）
-3. publicBuy function what if mint failed
+3. common mint and list script has error mintNft funciton need to be called by NoRugMarketplace
 
 ## Project overview
 

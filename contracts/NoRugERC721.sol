@@ -1,6 +1,6 @@
 //SPDX-License-Identifier: MIT
 
-/** There are two differences between NoRUGERC721 and ERC721 standard as following:
+/** There are three differences between NoRUGERC721 and ERC721 standard as following:
  * First, the mintNft function is only callable by the specifc market address
  * which is a parameter for the contract constrcutor;
  * Second, the contract has a stoarge variable which store the owner addres.
