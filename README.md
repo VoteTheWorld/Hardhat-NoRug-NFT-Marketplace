@@ -4,7 +4,8 @@
 
 1. code 加上备注
 2. 退款机制加上 uniswap 的转换（不太可行，contract 只能存储 eth）
-3. common mint and list script has error mintNft funciton need to be called by NoRugMarketplace
+3. BroughtAmount 和 RefundAmount 需要在 refund function 和 brought function 中更新
+4. s_publicSale mapping 换成两个 mapping
 
 ## Project overview
 

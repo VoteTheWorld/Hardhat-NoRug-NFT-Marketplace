@@ -40,8 +40,10 @@ contract NoRugMarketplace {
     mapping(address => mapping(uint256 => Listing)) private s_listing;
     mapping(address => PublicListing) private s_publicListing;
 
-    // nftaddress => publicSaleCount => timestamp
-    mapping(address => mapping(uint256 => uint256)) private s_publicSale;
+    // nftaddress => publicSaleCount
+    mapping(address => uint256) private s_publicCount;
+    // publicSaleCount => timestamp
+    mapping(uint256 => uint256) private s_publicSale;
     mapping(address => uint256) private s_balance;
     mapping(address => uint256) private s_balancePublic;
 
@@ -165,7 +167,8 @@ contract NoRugMarketplace {
 
         //store the time that was created
         uint256 publicSaleCount = s_publicSaleCount;
-        s_publicSale[nftAddress][publicSaleCount] = block.timestamp;
+        s_publicCount[nftAddress] = publicSaleCount;
+        s_publicSale[publicSaleCount] = block.timestamp;
         s_publicSaleCount++;
 
         emit PublicItemListed(msg.sender, nftAddress, publicSaleCount, price);
@@ -177,6 +180,7 @@ contract NoRugMarketplace {
             revert NoRugMarketplace__NotEnoughMoney();
         }
         s_balance[ListItem.Seller] += msg.value;
+
         delete (ListItem);
         IERC721(nftAddress).safeTransferFrom(
             ListItem.Seller,
@@ -195,9 +199,9 @@ contract NoRugMarketplace {
             revert NoRugMarketplace__PublicSaleEnded();
         }
         s_balancePublic[ListItem.Seller] += msg.value;
-        ListItem.BroughtAmount += 1;
+        s_publicListing[nftAddress].BroughtAmount += 1;
 
-        INoRugERC721(nftAddress).mintNft(msg.sender); // what if mint fails?
+        INoRugERC721(nftAddress).mintNft(msg.sender);
 
         emit PublicBrought(msg.sender, nftAddress, ListItem.Price);
     }
@@ -216,7 +220,7 @@ contract NoRugMarketplace {
 
     function publicSaleCancel(
         address nftAddress
-    ) external isContractOwner(nftAddress) isPublicListed(nftAddress) {
+    ) external notContractOwner(nftAddress) isPublicListed(nftAddress) {
         delete (s_publicListing[nftAddress]);
         emit PublicCanceled(msg.sender, nftAddress);
     }
@@ -259,7 +263,6 @@ contract NoRugMarketplace {
             publicSaleCount
         );
         s_balancePublic[msg.sender] -= balance;
-        s_publicListing[nftAddress].RefundAmount += 1;
         (bool success, ) = payable(msg.sender).call{value: balance}("");
         if (!success) {
             revert NoRugMarketplace__WithdrawFailed();
@@ -271,7 +274,7 @@ contract NoRugMarketplace {
         address nftAddress,
         uint256 publicSaleCount
     ) internal view returns (uint256) {
-        uint256 StartTime = s_publicSale[nftAddress][publicSaleCount];
+        uint256 StartTime = s_publicSale[publicSaleCount];
         PublicListing memory Item = s_publicListing[nftAddress];
         if (block.timestamp - StartTime <= 0) {
             revert NoRugMarketplace__CannotWithdraw();
@@ -301,19 +304,24 @@ contract NoRugMarketplace {
         external
         payable
         isOwner(nftAddress, tokenId, msg.sender)
-        notContractOwner(nftAddress)
+        isContractOwner(nftAddress)
     {
         INoRugERC721 nft = INoRugERC721(nftAddress);
+        PublicListing memory RefundItem = s_publicListing[nftAddress];
         if (nft.getApproved(tokenId) != address(this)) {
             revert NoRugMarketplace__NotApproved();
         }
-        address seller = s_publicListing[nftAddress].Seller;
-        IERC721(nftAddress).safeTransferFrom(msg.sender, seller, tokenId);
+        IERC721(nftAddress).safeTransferFrom(
+            msg.sender,
+            RefundItem.Seller,
+            tokenId
+        );
         uint256 refund = _getRefund(nftAddress, publicSalesCount);
         (bool success, ) = payable(msg.sender).call{value: refund}("");
         if (!success) {
             revert NoRugMarketplace__RefundFailed();
         }
+        RefundItem.RefundAmount = RefundItem.RefundAmount + 1;
         emit ItemRefunded(msg.sender, nftAddress, tokenId, refund);
     }
 
@@ -321,7 +329,7 @@ contract NoRugMarketplace {
         address nftAddress,
         uint256 publicSalesCount
     ) internal view returns (uint256) {
-        uint256 StartTime = s_publicSale[nftAddress][publicSalesCount];
+        uint256 StartTime = s_publicSale[publicSalesCount];
         if (block.timestamp - StartTime <= 0) {
             revert NoRugMarketplace__PublicSaleNotStarted();
         } else if (
@@ -371,10 +379,15 @@ contract NoRugMarketplace {
     }
 
     function getPublicSaleTimeStamp(
-        address nftAddress,
         uint256 publicSaleCount
     ) external view returns (uint256) {
-        return s_publicSale[nftAddress][publicSaleCount];
+        return s_publicSale[publicSaleCount];
+    }
+
+    function getPublicCount(
+        address nftAddress
+    ) external view returns (uint256) {
+        return s_publicCount[nftAddress];
     }
 
     function getBalance(address owner) external view returns (uint256) {
