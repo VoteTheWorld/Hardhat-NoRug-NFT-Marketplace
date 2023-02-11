@@ -1,7 +1,7 @@
 const { network, ethers, getNamedAccounts } = require("hardhat")
 const { moveBlock } = require("../utils/moveBlock")
 
-const PRICE = ethers.utils.parseEther("0.1")
+const PRICE = ethers.utils.parseEther("0.01")
 
 async function mintList() {
     const noRugMarketplace = await ethers.getContract("NoRugMarketplace")
@@ -27,18 +27,21 @@ async function mintList() {
         value: PRICE,
         gasLimit: 30000000,
     })
-    const mintTxRecipt = await mintTx.wait(1)
-    console.log(mintTxRecipt.events)
+    await mintTx.wait(1)
 
     console.log("Approving marketplace...")
-    const approveTx = await noRugERC721.approve(noRugMarketplace.address, 0)
+    const approveTx = await noRugERC721.approve(noRugMarketplace.address, 1)
     await approveTx.wait(1)
 
     console.log("Listing NFT...")
+
     const listTx = await noRugMarketplace.listItem(
         noRugERC721.address,
-        0,
-        PRICE
+        1,
+        PRICE,
+        {
+            gasLimit: 30000000,
+        }
     )
     await listTx.wait(1)
     console.log("NFT listed!")
